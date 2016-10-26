@@ -139,3 +139,6 @@ fabric.properties
 # Dataset
 TRAINING/
 TESTING/
+readme.txt
+labels.txt
+labels.json

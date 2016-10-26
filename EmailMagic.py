@@ -1,74 +1,114 @@
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.naive_bayes import MultinomialNB
 import os
-import codecs
+import json
+import meta
 
-label_lookup = {1:"HAM", 0:"SPAM", "1":"HAM", "0":"SPAM"}
-training_files = os.listdir("TRAINING")
-data = []
-
-#loads the data from the files. Ignores some weird encodings, but I do not think it matters
-#if someone wants to verify that its ok that would be rad
-for file_name in training_files:
-    temp = codecs.open("TRAINING/" + file_name, "r", encoding='utf-8', errors='ignore')
-    data.append(temp.read())
-
-
-#load the labels
-labels = []
-for line in open("labels.txt"):
-    labels.append(line[0])
-
-#split up the training data and labels into training, testing and validation sets
-split = len(data)//3 #where we will split
-validation_split = len(data)//10
-
-testing_data = data[validation_split:split] #will be used to test model
-testing_labels = labels[validation_split:split]
-
-validation_data = data[:validation_split] #This will be used at the very end to verify results
-validation_labels = data[:validation_split]
-
-training_data = data[split:] #2/3
-training_labels = labels[split:]
-
-#start tokenizing
-count_vect = CountVectorizer()
-X_train_counts = count_vect.fit_transform(training_data)
-
-tfidf_transformer = TfidfTransformer()
-X_train_tfidf = tfidf_transformer.fit_transform(X_train_counts)
-
-clf = MultinomialNB().fit(X_train_tfidf, training_labels)
-
-docs_new = testing_data[0]
-X_new_counts = count_vect.transform(docs_new)
-X_new_tfidf = tfidf_transformer.transform(X_new_counts)
-
-predicted = clf.predict(X_new_tfidf)
-
-for doc, category in zip(docs_new, predicted):
-     print('%r => %s' % (doc, label_lookup[category]))
+def main():
+    """
+    Main entry point / top-level execution here
+    """
+    labels_dict = extract_labels()
+    raw_ts_dict = read_training_set()
+    processed_ts = preprocess_training_set(labels_dict, raw_ts_dict)
 
 
+def train():
+    """
+    TODO
+    """
+    pass
 
 
+def classify():
+    """
+    TODO
+    """
+    pass
 
-'''
-All data from the testing file are unlabeled so we have to split up the training data
 
-test_files = os.listdir("TESTING/")  # lists all the files in TESTING, relative to current position
-test_data = []
+def extract_labels():
+    """
+    Extract labels.txt to build a dictionary and save the result to JSON file.
+    If there's already a labels.json available, just read from this file.
+    """
+    if (os.path.isfile('./labels.json')):
+        with open('labels.json') as labels_json:
+            return json.load(labels_json)
+    else:
+        labels_txt = open('labels.txt')
+        labels_txt_lines = labels_txt.readlines()
+        labels_dict = dict((label.split()[1], label.split()[0]) for label in labels_txt_lines)
+        with open('labels.json', 'w') as labels_json:
+            json.dump(labels_dict, labels_json)
+        return labels_dict
 
-for file_name in test_files:
-    data = codecs.open("TESTING/" + file_name, "r", encoding='utf-8', errors='ignore')
-    test_data.append(data.read())
 
-#All data from the testing file are unlabeled so we have to split up the training data
-validation_data = test_data[:len(test_data)]
-validation_training_labels = training_labels[:len(test_data)]
+def read_training_set():
+    """
+    Read all raw training files from the directory ./TRAINING into a dictionary, { filename: content ... }
+    """
+    training_files = os.listdir("TRAINING")
+    training_files_dict = {}
+    for file_name in training_files:
+        temp = open("TRAINING/" + file_name, "r", encoding='utf-8', errors='ignore')
+        training_files_dict[file_name] = temp.read()
+    return training_files_dict
 
-test_data = test_data[len(test_data):]
-test_training_labels = training_labels[len(test_data):]
-'''
+
+def preprocess_training_set(labels, raw_ts_dict):
+    """
+    Iteratively preprocess each eml file and return a list of preprocessed eml dictionaries.
+    """
+    result = []
+    for eml_filename, eml in raw_ts_dict.items():
+        result.append(preprocess_eml(eml_filename, labels[eml_filename], eml))
+        # meta.d_print(result, source='main/preprocess_training_set')
+        # exit()
+    return result
+
+
+def preprocess_eml(eml_filename, label, raw_eml):
+    """
+    Preprocess a single eml content into a dictionary.
+    Add the original filename and the label to the dictionary for identification & training
+    """
+    result = {'eml_filename': eml_filename, 'label': label}
+    content_result = preprocess_eml_content(raw_eml)
+
+    # THIS SYNTAX REQUIRES Python 3.5 !!!
+    # merge result and content_result dicts
+    result = {**result, **content_result}
+
+    meta.d_print(result, source='preprocess_email (end result)')
+    return result
+
+
+def preprocess_eml_content(raw_eml):
+    """
+    Preprocess the actual content of the eml file.
+    Consists of headers (to, from, etc.) and body.
+    """
+    processed_eml = {}
+    # meta.d_print(raw_eml)
+
+    # split raw eml format into headers and body
+    first_double_newline = raw_eml.index("\n\n")
+    header_lines = raw_eml[:first_double_newline].split('\n')
+    body = raw_eml[first_double_newline + 2:]
+
+    # preprocess headers into dict
+    for line in header_lines:
+        if ':' in line:
+            first_colon = line.index(':')
+            label = line[:first_colon].strip()
+            detail = line[first_colon + 1:].strip()
+            # meta.d_print(label, ':', detail, source='main/process_eml_content (header)')
+            processed_eml[label] = line[first_colon:]
+
+    # add body to the dict
+    # meta.d_print(body, source='main/preprocess_eml_content (body)')
+    processed_eml['body'] = body
+    return processed_eml
+
+
+if __name__ == '__main__':
+    main()
