@@ -102,7 +102,7 @@ def preprocess_eml_content(raw_eml):
             label = line[:first_colon].strip()
             detail = line[first_colon + 1:].strip()
             # meta.d_print(label, ':', detail, source='main/process_eml_content (header)')
-            processed_eml[label] = line[first_colon:]
+            processed_eml[label] = detail
 
     # add body to the dict
     # meta.d_print(body, source='main/preprocess_eml_content (body)')

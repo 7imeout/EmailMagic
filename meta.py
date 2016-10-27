@@ -11,7 +11,9 @@ def d_print(first_msg, *rest_msg, source='?'):
     :return: None
     """
     if (DEBUG_MODE):
-        end = '\n\n' if '\n' in first_msg or '\n' in rest_msg or (len(str(first_msg)) + len("".join(rest_msg)) > 120) else '\n'
+        end = '\n\n' \
+            if '\n' in first_msg or '\n' in rest_msg or (len(str(first_msg)) + len("".join(rest_msg)) > 80) \
+            else '\n'
         print("DEBUG from [", source, "]", first_msg, *rest_msg, end=end, flush=True)
 
 
@@ -53,7 +55,7 @@ class Classifier(object):
         Given an email (dictionary of email content), classifies it as either ham (1) or spam (0).
         Must be implemented by the subclasses; otherwise will throw NotImplementedError.
         :param email: a dictionary representing an email to be classified
-        :return: classification result - 1 if ham, 0 if spam
+        :return: tuple of (classification result - 1 if ham, 0 if spam, confidence)
         """
         raise NotImplementedError
 
