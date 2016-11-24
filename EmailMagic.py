@@ -1,6 +1,7 @@
 import os
 import json
 import meta
+import svm
 
 def main():
     """
@@ -9,7 +10,7 @@ def main():
     labels_dict = extract_labels()
     raw_ts_dict = read_training_set()
     processed_ts = preprocess_training_set(labels_dict, raw_ts_dict)
-
+    # svm.Classifier.train(processed_ts, labels_dict)
 
 def train():
     """
@@ -78,7 +79,7 @@ def preprocess_eml(eml_filename, label, raw_eml):
     # merge result and content_result dicts
     result = {**result, **content_result}
 
-    meta.d_print(result, source='preprocess_email (end result)')
+    # meta.d_print(result, source='preprocess_email (end result)')
     return result
 
 

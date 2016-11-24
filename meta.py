@@ -41,11 +41,12 @@ class Classifier(object):
         """
         self.classifier = None
 
-    def train(self, training_set):  # override me on your supervised-learning classifier class!
+    def train(self, training_set, labels):  # override me on your supervised-learning classifier class!
         """
-        Given a training set, trains the algorithm and initializes the classifier.
+        Given a training set and labels, trains the algorithm and initializes the classifier.
         Default implementation is doing nothing, so that the unsupervised learning algorithms can fall back to it.
         :param training_set: training set (list of dictionaries representing emails)
+        :param labels: the labels for the emails (dictionary with filename to number label)
         :return: None
         """
         pass
