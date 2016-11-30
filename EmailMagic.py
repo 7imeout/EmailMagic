@@ -10,7 +10,7 @@ def main():
     """
     labels_dict = extract_labels()
     raw_ts_dict = read_training_set()
-    
+
     processed_ts = preprocess_training_set(raw_ts_dict)
     headers = meta.all_labels(processed_ts)
     print (headers)
@@ -66,11 +66,11 @@ def read_training_set():
 def preprocess_training_set(raw_ts_dict):
     """
     Iteratively preprocess each eml file and return a list of preprocessed eml dictionaries.
-    Each element in the list is on the form {email id: Message object}
+    Each element in the list is on the form {"id": email_name, "msg": Message object}
     """
     result = []
     for eml_filename, eml in raw_ts_dict.items():
-        result.append({eml_filename : email.message_from_string(eml)})
+        result.append({"id": eml_filename, "msg": email.message_from_string(eml)})
         # meta.d_print(result, source='main/preprocess_training_set')
         # exit()
     return result
