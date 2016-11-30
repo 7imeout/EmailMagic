@@ -13,7 +13,26 @@ def main():
 
     processed_ts = preprocess_training_set(raw_ts_dict)
     headers = meta.all_labels(processed_ts)
+
     print (headers)
+
+    # sklearn needs one array with labels and one array with arrays of features.
+    labels = []
+    training_set = []
+    for eml in processed_ts:
+        features = []
+        for header in headers:
+            if header in eml["msg"].keys():
+                features.append(eml["msg"].get(header))
+            else:
+                # This email did not have this header, add empty string for that feature
+                features.append("")
+        # label and feature vector must have same index position
+        labels.append(labels_dict[eml["id"]])
+        training_set.append(features)
+
+    print (labels)
+    # Make the feature vectors from the headers and the body
     # print("Started SVM training")
     # svm.SVMClassifier().train(processed_ts)
     # print("SVM training done")
