@@ -134,6 +134,7 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 .idea/
+.vscode/
 
 ### Custom .gitignore
 # Dataset
@@ -142,3 +143,4 @@ TESTING/
 readme.txt
 labels.txt
 labels.json
+processed.json
