@@ -16,6 +16,18 @@ def d_print(first_msg, *rest_msg, source='?'):
             else '\n'
         print("DEBUG from [", source, "]", first_msg, *rest_msg, end=end, flush=True)
 
+def all_labels(training_set):
+    """
+    Returns a list of all headers used in the set of emails
+    """
+    headers = set()
+    for email in training_set:
+        for email_id in list(email.keys()):
+            for header in email[email_id].keys():
+                headers.add(header)
+
+    return list(headers)
+
 
 class Classifier(object):
     """This is a meta class that serves as a common interface for different classifier classes.
@@ -41,12 +53,11 @@ class Classifier(object):
         """
         self.classifier = None
 
-    def train(self, training_set, labels):  # override me on your supervised-learning classifier class!
+    def train(self, training_set):  # override me on your supervised-learning classifier class!
         """
         Given a training set and labels, trains the algorithm and initializes the classifier.
         Default implementation is doing nothing, so that the unsupervised learning algorithms can fall back to it.
         :param training_set: training set (list of dictionaries representing emails)
-        :param labels: the labels for the emails (dictionary with filename to number label)
         :return: None
         """
         pass

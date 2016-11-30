@@ -2,6 +2,7 @@ import os
 import json
 import meta
 import svm
+import email
 
 def main():
     """
@@ -9,8 +10,14 @@ def main():
     """
     labels_dict = extract_labels()
     raw_ts_dict = read_training_set()
-    processed_ts = preprocess_training_set(labels_dict, raw_ts_dict)
-    # svm.Classifier.train(processed_ts, labels_dict)
+    processed_ts = preprocess_training_set(raw_ts_dict)
+    headers = meta.all_labels(processed_ts)
+    print (headers)
+    # print("Started SVM training")
+    # svm.SVMClassifier().train(processed_ts)
+    # print("SVM training done")
+
+
 
 def train():
     """
@@ -55,13 +62,13 @@ def read_training_set():
     return training_files_dict
 
 
-def preprocess_training_set(labels, raw_ts_dict):
+def preprocess_training_set(raw_ts_dict):
     """
     Iteratively preprocess each eml file and return a list of preprocessed eml dictionaries.
     """
     result = []
     for eml_filename, eml in raw_ts_dict.items():
-        result.append(preprocess_eml(eml_filename, labels[eml_filename], eml))
+        result.append({eml_filename : email.message_from_string(eml)})
         # meta.d_print(result, source='main/preprocess_training_set')
         # exit()
     return result
@@ -89,7 +96,7 @@ def preprocess_eml_content(raw_eml):
     Consists of headers (to, from, etc.) and body.
     """
     processed_eml = {}
-    # meta.d_print(raw_eml)
+    meta.d_print(raw_eml)
 
     # split raw eml format into headers and body
     first_double_newline = raw_eml.index("\n\n")
@@ -102,12 +109,13 @@ def preprocess_eml_content(raw_eml):
             first_colon = line.index(':')
             label = line[:first_colon].strip()
             detail = line[first_colon + 1:].strip()
-            # meta.d_print(label, ':', detail, source='main/process_eml_content (header)')
+            meta.d_print(label, ':', detail, source='main/process_eml_content (header)')
             processed_eml[label] = detail
 
     # add body to the dict
-    # meta.d_print(body, source='main/preprocess_eml_content (body)')
+    meta.d_print(body, source='main/preprocess_eml_content (body)')
     processed_eml['body'] = body
+
     return processed_eml
 
 

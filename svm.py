@@ -3,16 +3,17 @@ from sklearn import svm
 
 class SVMClassifier(Classifier):
 
-    def train(self, training_set, label_dict):
+    def train(self, training_set):
         self.classifier = svm.SVC()
 
         features_train = []
         labels = []
-        for email_id in training_set.iterkeys():
+        for email in training_set:
             features = []
-            labels.append(label_dict[email_id])
-            for key in sorted(training_set[email_id].iterkeys()):
-                features.append(training_set[key])
+            labels.append(email["label"])
+            for key in sorted(email.keys()):
+                if key != "label":
+                    features.append(email[key])
             features_train.append(features)
 
         self.classifier.fit(features_train, labels)
