@@ -22,9 +22,8 @@ def all_labels(training_set):
     """
     headers = set()
     for email in training_set:
-        for email_id in list(email.keys()):
-            for header in email[email_id].keys():
-                headers.add(header)
+        for header in email["msg"].keys():
+            headers.add(header)
 
     return list(headers)
 
@@ -53,7 +52,7 @@ class Classifier(object):
         """
         self.classifier = None
 
-    def train(self, training_set):  # override me on your supervised-learning classifier class!
+    def train(self, training_set, labels):  # override me on your supervised-learning classifier class!
         """
         Given a training set and labels, trains the algorithm and initializes the classifier.
         Default implementation is doing nothing, so that the unsupervised learning algorithms can fall back to it.

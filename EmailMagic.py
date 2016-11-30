@@ -8,34 +8,49 @@ def main():
     """
     Main entry point / top-level execution here
     """
-    labels_dict = extract_labels()
-    raw_ts_dict = read_training_set()
-
-    processed_ts = preprocess_training_set(raw_ts_dict)
-    headers = meta.all_labels(processed_ts)
-
-    print (headers)
-
+    print ("Pre-processing")
     # sklearn needs one array with labels and one array with arrays of features.
-    labels = []
     training_set = []
-    for eml in processed_ts:
-        features = []
-        for header in headers:
-            if header in eml["msg"].keys():
-                features.append(eml["msg"].get(header))
-            else:
-                # This email did not have this header, add empty string for that feature
-                features.append("")
-        # label and feature vector must have same index position
-        labels.append(labels_dict[eml["id"]])
-        training_set.append(features)
+    labels = []
+    email_ids = []
 
-    print (labels)
+    if os.path.isfile('./processed.json'):
+        print("Loading features from cached file")
+        with open('processed.json') as proc:
+            processed = json.load(proc)
+            training_set = processed["training_set"]
+            labels = processed["labels"]
+            email_ids = processed["ids"]
+    else:
+        print("No cached feature file found - creating new")
+        labels_dict = extract_labels()
+        raw_ts_dict = read_training_set()
+
+        processed_ts = preprocess_training_set(raw_ts_dict)
+        headers = meta.all_labels(processed_ts)
+        for eml in processed_ts:
+            features = []
+            for header in headers:
+                if header in eml["msg"].keys():
+                    features.append(eml["msg"].get(header))
+                else:
+                    # This email did not have this header, add empty string for that feature
+                    features.append("")
+            # label and feature vector must have same index position
+            labels.append(labels_dict[eml["id"]])
+            email_ids.append(eml["id"])
+            training_set.append(features)
+        with open('processed.json', 'w') as proc:
+            json.dump({"training_set": training_set,
+                       "ids": email_ids,
+                       "labels": labels},
+                      proc)
+
+    print ("Pre-processing done")
     # Make the feature vectors from the headers and the body
-    # print("Started SVM training")
-    # svm.SVMClassifier().train(processed_ts)
-    # print("SVM training done")
+    print("Started SVM training")
+    svm.SVMClassifier().train(training_set, labels)
+    print("SVM training done")
 
 
 

@@ -3,20 +3,9 @@ from sklearn import svm
 
 class SVMClassifier(Classifier):
 
-    def train(self, training_set):
+    def train(self, training_set, labels):
         self.classifier = svm.SVC()
-
-        features_train = []
-        labels = []
-        for email in training_set:
-            features = []
-            labels.append(email["label"])
-            for key in sorted(email.keys()):
-                if key != "label":
-                    features.append(email[key])
-            features_train.append(features)
-
-        self.classifier.fit(features_train, labels)
+        self.classifier.fit(training_set, labels)
 
     def classify(self, email):
         email_features = []
