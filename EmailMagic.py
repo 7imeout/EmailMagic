@@ -1,6 +1,14 @@
 import os
 import json
-import meta
+import email
+
+from meta import d_print
+import naive_bayesian
+
+
+""" GLOBAL VARIABLES """
+header_superset = set()
+
 
 def main():
     """
@@ -10,12 +18,19 @@ def main():
     raw_ts_dict = read_training_set()
     processed_ts = preprocess_training_set(labels_dict, raw_ts_dict)
 
+    # INSTANTIATE YOUR CLASSIFIER AND ADD IT TO THE LIST
+    nb = naive_bayesian.NaiveBayesianClassifier()
+    classifiers = [nb]
 
-def train():
+    train(classifiers, processed_ts)
+
+
+def train(classifiers, training_set):
     """
-    TODO
+    Calls training routines of the classifiers
     """
-    pass
+    for cls in classifiers:
+        cls.train(training_set)
 
 
 def classify():
@@ -58,11 +73,18 @@ def preprocess_training_set(labels, raw_ts_dict):
     """
     Iteratively preprocess each eml file and return a list of preprocessed eml dictionaries.
     """
-    result = []
+    result = {}
+
+    # pass 1: preprocess with incongruous header set sizes
     for eml_filename, eml in raw_ts_dict.items():
-        result.append(preprocess_eml(eml_filename, labels[eml_filename], eml))
-        # meta.d_print(result, source='main/preprocess_training_set')
-        # exit()
+        result[eml_filename] = preprocess_eml(eml_filename, labels[eml_filename], eml)
+
+    # pass 2: fill in missing headers with value of None
+    for entry in result.values():
+        for header_item in header_superset:
+            if header_item not in entry:
+                entry[header_item] = None
+
     return result
 
 
@@ -78,7 +100,7 @@ def preprocess_eml(eml_filename, label, raw_eml):
     # merge result and content_result dicts
     result = {**result, **content_result}
 
-    meta.d_print(result, source='preprocess_email (end result)')
+    # d_print(result, source='preprocess_email (end result)')
     return result
 
 
@@ -87,26 +109,16 @@ def preprocess_eml_content(raw_eml):
     Preprocess the actual content of the eml file.
     Consists of headers (to, from, etc.) and body.
     """
+    global header_superset
     processed_eml = {}
-    # meta.d_print(raw_eml)
 
-    # split raw eml format into headers and body
-    first_double_newline = raw_eml.index("\n\n")
-    header_lines = raw_eml[:first_double_newline].split('\n')
-    body = raw_eml[first_double_newline + 2:]
+    msg = email.message_from_string(raw_eml)
+    for key in msg.keys():
+        header_superset.add(key)
+        processed_eml[key] = msg.get(key)
 
-    # preprocess headers into dict
-    for line in header_lines:
-        if ':' in line:
-            first_colon = line.index(':')
-            label = line[:first_colon].strip()
-            detail = line[first_colon + 1:].strip()
-            # meta.d_print(label, ':', detail, source='main/process_eml_content (header)')
-            processed_eml[label] = detail
+    # d_print(processed_eml, source='header dict')
 
-    # add body to the dict
-    # meta.d_print(body, source='main/preprocess_eml_content (body)')
-    processed_eml['body'] = body
     return processed_eml
 
 
