@@ -41,14 +41,21 @@ class Classifier(object):
         """
         self.classifier = None
 
+
     def train(self, training_set):  # override me on your supervised-learning classifier class!
         """
         Given a training set, trains the algorithm and initializes the classifier.
         Default implementation is doing nothing, so that the unsupervised learning algorithms can fall back to it.
-        :param training_set: training set (list of dictionaries representing emails)
+
+        The parameter passed in is a dictionary of filename to a dictionary of features.
+            Features include: label (1/0), filename, and other various header-value pairs.
+            Example: { 'TRAIN_12345.eml' : { 'label' : 1, 'eml_filename' : 'TRAIN_12345.eml', 'Subject' : '...', ... }
+
+        :param training_set: training set (dictionary with {filename: { (features) }, ... })
         :return: None
         """
         pass
+
 
     def classify(self, email):  # override me on your classifier class!
         """
@@ -58,6 +65,7 @@ class Classifier(object):
         :return: tuple of (classification result - 1 if ham, 0 if spam, confidence)
         """
         raise NotImplementedError
+
 
     def classify_all(self, emails):  # NO NEED to OVERRIDE THIS
         """
