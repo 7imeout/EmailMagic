@@ -5,9 +5,9 @@ import email
 from meta import d_print
 import naive_bayesian
 
-
 """ GLOBAL VARIABLES """
 header_superset = set()
+header_superset.add('body')
 
 
 def main():
@@ -18,9 +18,9 @@ def main():
     raw_ts_dict = read_training_set()
     processed_ts = preprocess_training_set(labels_dict, raw_ts_dict)
 
-    # INSTANTIATE YOUR CLASSIFIER AND ADD IT TO THE LIST
+    # TODO: INSTANTIATE YOUR CLASSIFIER AND ADD IT TO THE DICT
     nb = naive_bayesian.NaiveBayesianClassifier()
-    classifiers = [nb]
+    classifiers = {'Naive Bayesian': nb}
 
     train(classifiers, processed_ts)
 
@@ -29,8 +29,10 @@ def train(classifiers, training_set):
     """
     Calls training routines of the classifiers
     """
-    for cls in classifiers:
-        cls.train(training_set)
+    for cls_name in classifiers.keys():
+        d_print('Starting training', source=cls_name)
+        classifiers[cls_name].train(training_set)
+        d_print('Training complete', source=cls_name)
 
 
 def classify():
@@ -46,9 +48,11 @@ def extract_labels():
     If there's already a labels.json available, just read from this file.
     """
     if (os.path.isfile('./labels.json')):
+        d_print('Reading labels from the local JSON cache', source='extract_labels')
         with open('labels.json') as labels_json:
             return json.load(labels_json)
     else:
+        d_print('Generating a local JSON cache of labels', source='extract_labels')
         labels_txt = open('labels.txt')
         labels_txt_lines = labels_txt.readlines()
         labels_dict = dict((label.split()[1], label.split()[0]) for label in labels_txt_lines)
@@ -61,12 +65,20 @@ def read_training_set():
     """
     Read all raw training files from the directory ./TRAINING into a dictionary, { filename: content ... }
     """
-    training_files = os.listdir("TRAINING")
-    training_files_dict = {}
-    for file_name in training_files:
-        temp = open("TRAINING/" + file_name, "r", encoding='utf-8', errors='ignore')
-        training_files_dict[file_name] = temp.read()
-    return training_files_dict
+    if (os.path.isfile('./training_set.json')):
+        d_print('Reading training set from the local JSON cache', source='read_training_set')
+        with open('training_set.json') as training_set_json:
+            return json.load(training_set_json)
+    else:
+        d_print('Generating training set from EML files', source='read_training_set')
+        training_files = os.listdir('TRAINING')
+        training_files_dict = {}
+        for file_name in training_files:
+            temp = open('TRAINING/' + file_name, 'r', encoding='utf-8', errors='ignore')
+            training_files_dict[file_name] = temp.read()
+        with open('training_set.json', 'w') as training_set_json:
+            json.dump(training_files_dict, training_set_json)
+        return training_files_dict
 
 
 def preprocess_training_set(labels, raw_ts_dict):
@@ -100,7 +112,6 @@ def preprocess_eml(eml_filename, label, raw_eml):
     # merge result and content_result dicts
     result = {**result, **content_result}
 
-    # d_print(result, source='preprocess_email (end result)')
     return result
 
 
@@ -113,13 +124,43 @@ def preprocess_eml_content(raw_eml):
     processed_eml = {}
 
     msg = email.message_from_string(raw_eml)
+
+    # add headers to the dict
     for key in msg.keys():
         header_superset.add(key)
         processed_eml[key] = msg.get(key)
 
-    # d_print(processed_eml, source='header dict')
+    # add body to the dict
+    body_str = parse_multipart_payload_tree(msg.get_payload())
+    processed_eml['body'] = body_str
 
+    # d_print(processed_eml, source='header dict')
     return processed_eml
+
+
+def parse_multipart_payload_tree(payload):
+    """
+    Annoyingly enough, each payload in our corpus seems to have a different structure.
+    Doing a recursive parse here to get all of the payload content concat'd as a string.
+    :param payload: root or parent payload; may be a string, list, or a Message object
+    :return: single string containing (hopefully) all body content of the given payload
+    """
+    if isinstance(payload, str):
+        # case: simple string / leaf node
+        return payload
+    elif isinstance(payload, list):
+        # case: multiple branches
+        children = ''
+        for child in payload:
+            child_content = parse_multipart_payload_tree(child)
+            children += (child_content + '\n') if child_content else ''
+        return children
+    elif isinstance(payload, email.message.Message):
+        # case: Message object / wrapper node
+        return parse_multipart_payload_tree(payload.get_payload())
+    else:
+        # backup case in case I missed anything
+        return str(payload)
 
 
 if __name__ == '__main__':
