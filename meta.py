@@ -48,10 +48,17 @@ class Classifier(object):
         Default implementation is doing nothing, so that the unsupervised learning algorithms can fall back to it.
 
         The parameter passed in is a dictionary of filename to a dictionary of features.
-            Features include: label (1/0), filename, and other various header-value pairs.
-            Example: { 'TRAIN_12345.eml' : { 'label' : 1, 'eml_filename' : 'TRAIN_12345.eml', 'Subject' : '...', ... }
+            Features include: label (1/0), filename, body, and other various header-value pairs.
+            Example: { 'TRAIN_12345.eml' : { 'label' : 1,
+                                             'eml_filename' : 'TRAIN_12345.eml',
+                                             'body' : '... some really long text, html, and css junk ...'
+                                             'Subject' : 'some subject',
+                                              .
+                                              .
+                                              .
+                                                } }
 
-        :param training_set: training set (dictionary with {filename: { (features) }, ... })
+        :param training_set: training set (see the example above)
         :return: None
         """
         pass
