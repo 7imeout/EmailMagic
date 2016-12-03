@@ -17,6 +17,10 @@ def main():
     raw_ts_dict = read_training_set()
     processed_ts = preprocess_training_set(labels_dict, raw_ts_dict)
 
+    split = len(processed_ts)//3
+    training = processed_ts[split:]
+    testing = [:split]
+
     # TODO: INSTANTIATE YOUR CLASSIFIER AND ADD IT TO THE DICT
     nb = naive_bayesian.NaiveBayesianClassifier()
     classifiers = {'Naive Bayesian': nb}
