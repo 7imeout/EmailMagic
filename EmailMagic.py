@@ -21,9 +21,10 @@ def main():
 
     split = len(processed_ts)//3
 
-    training = dict(processed_ts.items()[split:])
-    testing = dict(processed_ts.items()[:split])
+    testing = dict(list(processed_ts.items())[:split]) #1/3
+    training = dict(list(processed_ts.items())[split:]) #2/3
 
+    print(len(training), len(testing))
     # TODO: INSTANTIATE YOUR CLASSIFIER AND ADD IT TO THE DICT
     nb = naive_bayesian.NaiveBayesianClassifier()
     classifiers = {'Naive Bayesian': nb}
