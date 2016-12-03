@@ -1,5 +1,7 @@
 import json
 import email
+import os
+from pprint import pprint
 
 from meta import d_print
 import naive_bayesian
@@ -18,15 +20,16 @@ def main():
     processed_ts = preprocess_training_set(labels_dict, raw_ts_dict)
 
     split = len(processed_ts)//3
-    training = processed_ts[split:]
-    testing = [:split]
+
+    training = dict(processed_ts.items()[split:])
+    testing = dict(processed_ts.items()[:split])
 
     # TODO: INSTANTIATE YOUR CLASSIFIER AND ADD IT TO THE DICT
     nb = naive_bayesian.NaiveBayesianClassifier()
     classifiers = {'Naive Bayesian': nb}
 
-    train(classifiers, processed_ts)
-
+    train(classifiers, training)
+    #classify(classifiers, testing)
 
 def train(classifiers, training_set):
     """
