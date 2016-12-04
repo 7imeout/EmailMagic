@@ -28,9 +28,10 @@ def main():
     print(len(training), len(testing))
     # TODO: INSTANTIATE YOUR CLASSIFIER AND ADD IT TO THE DICT
     nb = naive_bayesian.NaiveBayesianClassifier()
-    s = svm.SVMClassifier()
+    svm_clf = svm.SVMClassifier()
 
-    classifiers = {'Naive Bayesian': nb}
+    classifiers = {'Naive Bayesian': nb,
+                   'SVM': svm_clf}
 
     train(classifiers, training)
     #classify(classifiers, testing)
