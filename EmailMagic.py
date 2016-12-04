@@ -2,6 +2,7 @@ import json
 import email
 import os
 from pprint import pprint
+import svm
 
 from meta import d_print
 import naive_bayesian
@@ -27,6 +28,8 @@ def main():
     print(len(training), len(testing))
     # TODO: INSTANTIATE YOUR CLASSIFIER AND ADD IT TO THE DICT
     nb = naive_bayesian.NaiveBayesianClassifier()
+    s = svm.SVMClassifier()
+
     classifiers = {'Naive Bayesian': nb}
 
     train(classifiers, training)
