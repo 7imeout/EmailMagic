@@ -39,17 +39,17 @@ class SVMClassifier(Classifier):
         d_print("Pre-processing done, t = " + str(end - start), source="SVM")
 
         #  Reduce the number of features
-        # start = timer()
-        # self.feature_selection = SelectKBest(f_classif, k = self.number_of_features)
-        # important_features = self.feature_selection.fit_transform(features, labels)
-        # end = timer()
-        # d_print("Feature selection done, t = " + str(end - start), source="SVM")
+        start = timer()
+        self.feature_selection = SelectKBest(f_classif, k = self.number_of_features)
+        important_features = self.feature_selection.fit_transform(features, labels)
+        end = timer()
+        d_print("Feature selection done, t = " + str(end - start), source="SVM")
 
 
         #  Train the classifier
         start = timer()
         self.classifier = SVC()
-        self.classifier.fit(features, labels)
+        self.classifier.fit(important_features, labels)
         end = timer()
         d_print("Classifier training done, t = " + str(end - start), source="SVM")
 
