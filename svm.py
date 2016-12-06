@@ -11,7 +11,7 @@ class SVMClassifier(Classifier):
         self.classifier = None
         self.feature_selection = None
         self.all_features = None
-        self.number_of_features = 500
+        self.number_of_features = 700
 
     def train(self, training_set):
 
