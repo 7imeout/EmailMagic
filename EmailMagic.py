@@ -2,10 +2,9 @@ import json
 import email
 import os
 from pprint import pprint
-import svm
 
 from meta import d_print, CORPUS_SPLIT
-import naive_bayesian
+import naive_bayesian, svm
 
 """ GLOBAL VARIABLES """
 header_superset = set()
@@ -17,13 +16,17 @@ def main():
     Main entry point / top-level execution here
     """
     labels_dict = extract_labels()
-    raw_ts_dict = read_training_set()
-    processed_ts = preprocess_training_set(labels_dict, raw_ts_dict)
 
-    split = len(processed_ts) // CORPUS_SPLIT
+    raw_unlabeled_test_set_dict = read_unlabeled_test_set()
+    processed_unlabeled_test_set = preprocess(None, raw_unlabeled_test_set_dict)
 
-    testing = dict(list(processed_ts.items())[:split])  # 1/3
-    training = dict(list(processed_ts.items())[split:])  # 2/3
+    raw_training_set_dict = read_training_set()
+    processed_training_set = preprocess(labels_dict, raw_training_set_dict)
+
+    split = len(processed_training_set) // CORPUS_SPLIT
+
+    testing = dict(list(processed_training_set.items())[:split])  # 1/3
+    training = dict(list(processed_training_set.items())[split:])  # 2/3
 
     d_print('training and testing set sizes', str(len(training)), str(len(testing)), source='main')
 
@@ -35,7 +38,8 @@ def main():
                    'SVM': svm_clf}
 
     train(classifiers, training)
-    classify(classifiers, testing)
+    classify(classifiers, testing, processed_unlabeled_test_set)
+
 
 def train(classifiers, training_set):
     """
@@ -47,7 +51,7 @@ def train(classifiers, training_set):
         d_print('Training complete', source=cls_name)
 
 
-def classify(classifiers, testing_set):
+def classify(classifiers, testing_set, unlabeled_testing_set):
     """
     Calls classify routines of the classifiers using classify_all (in meta.py), and reports accuracy.
     """
@@ -61,7 +65,18 @@ def classify(classifiers, testing_set):
             if str(result[eml_filename]) == str(testing_set[eml_filename]['label']):
                 correct_result_count += 1
         print('\n', correct_result_count, 'out of', len(result), 'cases were correct.\n', cls_name,
-              'is {:6.4f} % accurate.\n'.format(correct_result_count / len(result) * 100))
+              'is {:6.4f} % accurate.'.format(correct_result_count / len(result) * 100))
+
+        result = classifiers[cls_name].classify_all(unlabeled_testing_set)
+        assert len(result) == len(unlabeled_testing_set)
+
+        spam_result_count = 0
+        for eml_filename in result.keys():
+            if str(result[eml_filename]) == str(0):
+                spam_result_count += 1
+        print('\n', spam_result_count, 'out of', len(result), 'unlabeled cases were reported as spam.\n', cls_name,
+              'claims {:6.4f} % of unlabeled test set is spam.\n'.format(spam_result_count / len(result) * 100))
+
         d_print('Finished classification', source=cls_name)
 
 
@@ -104,7 +119,27 @@ def read_training_set():
         return training_files_dict
 
 
-def preprocess_training_set(labels, raw_ts_dict):
+def read_unlabeled_test_set():
+    """
+    Read all raw training files from the directory ./TRAINING into a dictionary, { filename: content ... }
+    """
+    if (os.path.isfile('./unlabeled_test_set.json')):
+        d_print('Reading unlabeled test set from the local JSON cache', source='read_unlabeled_test_set')
+        with open('unlabeled_test_set.json') as unlabeled_test_set:
+            return json.load(unlabeled_test_set)
+    else:
+        d_print('Generating unlabeled test set from EML files', source='read_unlabeled_test_set')
+        test_files = os.listdir('TESTING')
+        test_files_dict = {}
+        for file_name in test_files:
+            temp = open('TESTING/' + file_name, 'r', encoding='utf-8', errors='ignore')
+            test_files_dict[file_name] = temp.read()
+        with open('unlabeled_test_set.json', 'w') as unlabeled_test_set:
+            json.dump(test_files_dict, unlabeled_test_set)
+        return test_files_dict
+
+
+def preprocess(labels, raw_ts_dict):
     """
     Iteratively preprocess each eml file and return a list of preprocessed eml dictionaries.
     """
@@ -112,7 +147,7 @@ def preprocess_training_set(labels, raw_ts_dict):
 
     # pass 1: preprocess with incongruous header set sizes
     for eml_filename, eml in raw_ts_dict.items():
-        result[eml_filename] = preprocess_eml(eml_filename, labels[eml_filename], eml)
+        result[eml_filename] = preprocess_eml(eml_filename, labels[eml_filename] if labels else None, eml)
 
     # pass 2: fill in missing headers with value of None
     for entry in result.values():
