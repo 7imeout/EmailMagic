@@ -34,6 +34,9 @@ def main():
                    'SVM': svm_clf}
 
     train(classifiers, training)
+
+    print(svm_clf.classify_all(testing))
+
     #classify(classifiers, testing)
 
 def train(classifiers, training_set):
