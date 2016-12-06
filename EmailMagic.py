@@ -3,7 +3,7 @@ import email
 import os
 from pprint import pprint
 
-from meta import d_print
+from meta import d_print, CORPUS_SPLIT
 import naive_bayesian
 
 """ GLOBAL VARIABLES """
@@ -19,22 +19,24 @@ def main():
     raw_ts_dict = read_training_set()
     processed_ts = preprocess_training_set(labels_dict, raw_ts_dict)
 
-    split = len(processed_ts)//3
+    split = len(processed_ts) // CORPUS_SPLIT
 
-    testing = dict(list(processed_ts.items())[:split]) #1/3
-    training = dict(list(processed_ts.items())[split:]) #2/3
+    testing = dict(list(processed_ts.items())[:split])  # 1/3
+    training = dict(list(processed_ts.items())[split:])  # 2/3
 
-    print(len(training), len(testing))
+    d_print('training and testing set sizes', str(len(training)), str(len(testing)), source='main')
+
     # TODO: INSTANTIATE YOUR CLASSIFIER AND ADD IT TO THE DICT
     nb = naive_bayesian.NaiveBayesianClassifier()
     classifiers = {'Naive Bayesian': nb}
 
     train(classifiers, training)
-    #classify(classifiers, testing)
+    classify(classifiers, testing)
+
 
 def train(classifiers, training_set):
     """
-    Calls training routines of the classifiers
+    Calls training routines of the classifiers.
     """
     for cls_name in classifiers.keys():
         d_print('Starting training', source=cls_name)
@@ -42,11 +44,22 @@ def train(classifiers, training_set):
         d_print('Training complete', source=cls_name)
 
 
-def classify():
+def classify(classifiers, testing_set):
     """
-    TODO
+    Calls classify routines of the classifiers using classify_all (in meta.py), and reports accuracy.
     """
-    pass
+    for cls_name in classifiers.keys():
+        d_print('Starting classification', source=cls_name)
+        result = classifiers[cls_name].classify_all(testing_set)
+        assert len(result) == len(testing_set)
+
+        correct_result_count = 0
+        for eml_filename in result.keys():
+            if str(result[eml_filename]) == str(testing_set[eml_filename]['label']):
+                correct_result_count += 1
+        print('\n', correct_result_count, 'out of', len(result), 'cases were correct.\n', cls_name,
+              'is {:6.4f} % accurate.\n'.format(correct_result_count / len(result) * 100))
+        d_print('Finished classification', source=cls_name)
 
 
 def extract_labels():

@@ -1,25 +1,21 @@
 import nltk, copy, string, re
 from meta import Classifier, d_print
 
-# use 1/3 split
-TEST_RATIO = 3
 
 class NaiveBayesianClassifier(Classifier):
-
     def train(self, training_set):
 
-        all_emails = [(self.get_features(training_set[eml]), False if training_set[eml]['label'] == '1' else True) for eml in training_set.keys()]
-        split_point = len(all_emails) // TEST_RATIO
-        test_split, train_split = all_emails[:split_point], all_emails[split_point:]
-
-        self.classifier = nltk.NaiveBayesClassifier.train(train_split)
+        all_emails = [(self.get_features(training_set[eml]), False if training_set[eml]['label'] == '1' else True) for
+                      eml in training_set.keys()]
+        self.classifier = nltk.NaiveBayesClassifier.train(all_emails)
 
         print()
         self.classifier.show_most_informative_features(100)
-        print('\nAccuracy: {:6.4f}%'.format(nltk.classify.accuracy(self.classifier, test_split) * 100))
+        print()
 
     def classify(self, email):
-        pass
+        result = self.classifier.classify(self.get_features(email))
+        return 0 if result else 1
 
     def get_features(self, email):
         features = {}

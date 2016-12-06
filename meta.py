@@ -1,6 +1,9 @@
 """Global flag for DEBUG printing """
 DEBUG_MODE = True
 
+"""Global Constants"""
+CORPUS_SPLIT = 3
+
 
 def d_print(first_msg, *rest_msg, source='?'):
     """
@@ -35,14 +38,14 @@ class Classifier(object):
             N/A
 
     """
+
     def __init__(self):
         """
         No-args constructor; sets classifier attr to None.
         """
         self.classifier = None
 
-
-    def train(self, training_set):  # override me on your supervised-learning classifier class!
+    def train(self, training_set):  # override me on your classifier class!
         """
         Given a training set, trains the algorithm and initializes the classifier.
         Default implementation is doing nothing, so that the unsupervised learning algorithms can fall back to it.
@@ -63,7 +66,6 @@ class Classifier(object):
         """
         pass
 
-
     def classify(self, email):  # override me on your classifier class!
         """
         Given an email (dictionary of email content), classifies it as either ham (1) or spam (0).
@@ -73,7 +75,6 @@ class Classifier(object):
         """
         raise NotImplementedError
 
-
     def classify_all(self, emails):  # NO NEED to OVERRIDE THIS
         """
         Given a list of emails, or a test set, classifies all of the given emails and
@@ -81,4 +82,4 @@ class Classifier(object):
         :param emails: test set (list of dictionaries representing emails)
         :return: a dictionary with entries like { eml_filename : classification_result }
         """
-        return dict((emails['eml_filename'], self.classify(email)) for email in emails)
+        return dict((eml_filename, self.classify(emails[eml_filename])) for eml_filename in emails.keys())
