@@ -8,7 +8,7 @@ import copy, re, string
 class SVMClassifier(Classifier):
 
     def __init__(self):
-        self.classifier = None
+        super().__init__()
         self.feature_selection = None
         self.all_features = None
         self.number_of_features = 700
