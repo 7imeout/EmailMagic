@@ -5,6 +5,7 @@ from pprint import pprint
 
 from meta import d_print
 import naive_bayesian
+import decision_tree
 
 """ GLOBAL VARIABLES """
 header_superset = set()
@@ -27,7 +28,9 @@ def main():
     print(len(training), len(testing))
     # TODO: INSTANTIATE YOUR CLASSIFIER AND ADD IT TO THE DICT
     nb = naive_bayesian.NaiveBayesianClassifier()
-    classifiers = {'Naive Bayesian': nb}
+    dt = decision_tree.DecisionTreeClassifier()
+    classifiers = {'Naive Bayesian': nb,
+                   "Decision Tree": dt}
 
     train(classifiers, training)
     #classify(classifiers, testing)
