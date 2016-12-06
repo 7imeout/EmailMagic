@@ -1,9 +1,10 @@
 import json
 import email
 import os
+from pprint import pprint
 
 from meta import d_print, CORPUS_SPLIT
-import naive_bayesian
+import naive_bayesian, svm
 
 """ GLOBAL VARIABLES """
 header_superset = set()
@@ -31,7 +32,10 @@ def main():
 
     # TODO: INSTANTIATE YOUR CLASSIFIER AND ADD IT TO THE DICT
     nb = naive_bayesian.NaiveBayesianClassifier()
-    classifiers = {'Naive Bayesian': nb}
+    svm_clf = svm.SVMClassifier()
+
+    classifiers = {'Naive Bayesian': nb,
+                   'SVM': svm_clf}
 
     train(classifiers, training)
     classify(classifiers, testing, processed_unlabeled_test_set)
