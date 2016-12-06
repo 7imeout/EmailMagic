@@ -37,7 +37,6 @@ def main():
     train(classifiers, training)
     classify(classifiers, testing)
 
-
 def train(classifiers, training_set):
     """
     Calls training routines of the classifiers.

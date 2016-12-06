@@ -14,17 +14,10 @@ class SVMClassifier(Classifier):
         self.number_of_features = 500
 
     def train(self, training_set):
-        """
-        create vectors with all words of email and label
-        Exctract all the words used in the emails
-        select features
-        train
-        """
+
         self.all_features = self.all_words(training_set)
         features = []
         labels = []
-
-
 
         # The number of emails to use for training
         n_laps = len(training_set)
@@ -46,11 +39,11 @@ class SVMClassifier(Classifier):
         d_print("Pre-processing done, t = " + str(end - start), source="SVM")
 
         #  Reduce the number of features
-        start = timer()
-        self.feature_selection = SelectKBest(f_classif, k = self.number_of_features)
-        important_features = self.feature_selection.fit_transform(features, labels)
-        end = timer()
-        d_print("Feature selection done, t = " + str(end - start), source="SVM")
+        # start = timer()
+        # self.feature_selection = SelectKBest(f_classif, k = self.number_of_features)
+        # important_features = self.feature_selection.fit_transform(features, labels)
+        # end = timer()
+        # d_print("Feature selection done, t = " + str(end - start), source="SVM")
 
 
         #  Train the classifier
@@ -62,13 +55,24 @@ class SVMClassifier(Classifier):
 
 
     def classify(self, email):
-        features = self.get_feature_vector(email)
+        features = [self.get_feature_vector(email)]
 
         # Reduce if we had feature reduction
         if self.feature_selection != None:
             features = self.feature_selection.transform(features)
 
-        return self.classifier.predict(features)
+        pred = self.classifier.predict(features)
+        return pred
+
+    def classify_all(self, emails):
+        start = timer()
+        ret = {}
+        for key, email in emails.items():
+            ret[key] = self.classify(email)[0]
+
+        end = timer()
+        d_print("Classification done, t = " + str(end - start), source="SVM")
+        return ret
 
     def all_words(self, emails):
         res = set()
