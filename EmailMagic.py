@@ -4,7 +4,7 @@ import os
 from pprint import pprint
 
 from meta import d_print, CORPUS_SPLIT
-import naive_bayesian, svm
+import naive_bayesian, svm, decision_tree
 
 """ GLOBAL VARIABLES """
 header_superset = set()
@@ -33,9 +33,11 @@ def main():
     # TODO: INSTANTIATE YOUR CLASSIFIER AND ADD IT TO THE DICT
     nb = naive_bayesian.NaiveBayesianClassifier()
     svm_clf = svm.SVMClassifier()
+    dt = decision_tree.DecisionTreeClassifier()
 
     classifiers = {'Naive Bayesian': nb,
-                   'SVM': svm_clf}
+                   'SVM': svm_clf,
+                   'Decision Tree':dt}
 
     train(classifiers, training)
     classify(classifiers, testing, processed_unlabeled_test_set)
