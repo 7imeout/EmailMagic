@@ -1,10 +1,10 @@
-import json
-import email
-import os
-from pprint import pprint
+import json, email, os, warnings
+from timeit import default_timer as timer
 
 from meta import d_print, CORPUS_SPLIT, EXCLUSION_LIST_FOR_LIVE_DEMO
 import naive_bayesian, svm, decision_tree, k_nearest_neighbor
+
+warnings.simplefilter('ignore')
 
 """ GLOBAL VARIABLES """
 header_superset = set()
@@ -49,12 +49,15 @@ def train(classifiers, training_set):
     """
     for cls_name in classifiers.keys():
         if cls_name in EXCLUSION_LIST_FOR_LIVE_DEMO:
-            d_print(cls_name, 'skipped for Live Demo', source='train')
+            d_print(cls_name, 'skipped for Live Demo', source=cls_name + ' (main)')
         else:
-            d_print('Starting training', source=cls_name)
-            classifiers[cls_name].train(training_set)
-            d_print('Training complete', source=cls_name)
+            d_print('Starting additional pre-processing and training', source=cls_name + ' (main)')
 
+            start = timer()
+            classifiers[cls_name].train(training_set)
+            end = timer()
+
+            d_print('Training complete, t =', str(end - start), source=cls_name + ' (main)')
 
 
 def classify(classifiers, testing_set, unlabeled_testing_set):
@@ -62,11 +65,17 @@ def classify(classifiers, testing_set, unlabeled_testing_set):
     Calls classify routines of the classifiers using classify_all (in meta.py), and reports accuracy.
     """
     for cls_name in classifiers.keys():
+        print()
         if cls_name in EXCLUSION_LIST_FOR_LIVE_DEMO:
             d_print(cls_name, 'skipped for Live Demo', source='classify')
         else:
-            d_print('Starting classification', source=cls_name)
+            d_print('Starting classification of labeled testing set', source=cls_name + ' (main)')
+
+            start = timer()
             result = classifiers[cls_name].classify_all(testing_set)
+            end = timer()
+
+            d_print('Classification of labeled testing set done, t =', str(end - start), source=cls_name + ' (main)')
             assert len(result) == len(testing_set)
 
             correct_result_count = 0
@@ -74,9 +83,15 @@ def classify(classifiers, testing_set, unlabeled_testing_set):
                 if str(result[eml_filename]) == str(testing_set[eml_filename]['label']):
                     correct_result_count += 1
             print('\n', correct_result_count, 'out of', len(result), 'cases were correct.\n', cls_name,
-                  'is {:6.4f} % accurate.'.format(correct_result_count / len(result) * 100))
+                  'is {:6.4f} % accurate.\n'.format(correct_result_count / len(result) * 100))
 
+            d_print('Starting classification of unlabeled testing set', source=cls_name + ' (main)')
+
+            start = timer()
             result = classifiers[cls_name].classify_all(unlabeled_testing_set)
+            end = timer()
+
+            d_print('Classification of unlabeled testing set done, t =', str(end - start), source=cls_name + ' (main)')
             assert len(result) == len(unlabeled_testing_set)
 
             spam_result_count = 0
@@ -86,7 +101,7 @@ def classify(classifiers, testing_set, unlabeled_testing_set):
             print('\n', spam_result_count, 'out of', len(result), 'unlabeled cases were reported as spam.\n', cls_name,
                   'claims {:6.4f} % of unlabeled test set is spam.\n'.format(spam_result_count / len(result) * 100))
 
-            d_print('Finished classification', source=cls_name)
+            d_print('Finished classification', source=cls_name + ' (main)')
 
 
 def extract_labels():

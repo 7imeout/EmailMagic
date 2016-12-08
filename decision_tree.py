@@ -36,13 +36,13 @@ class DecisionTreeClassifier(Classifier):
 
         importances = cls.feature_importances_
         indices = np.argsort(importances)[::-1]
-        print("Feature ranking:")
+        print("\nFeature ranking:\n")
         for f in range(20):
-            print("%d. feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
+            print("%5d. feature %3d (%f)" % (f + 1, indices[f], importances[indices[f]]))
 
 
         score = cls.score(features_test_transformed, labels_test)
-        print(score)
+        print('\nScore:', score, '\n')
 
     def classify(self, email):
         pass
