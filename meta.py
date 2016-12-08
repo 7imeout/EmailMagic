@@ -3,6 +3,7 @@ DEBUG_MODE = True
 
 """Global Constants"""
 CORPUS_SPLIT = 3
+EXCLUSION_LIST_FOR_LIVE_DEMO = ['SVM']
 
 
 def d_print(first_msg, *rest_msg, source='?'):

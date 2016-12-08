@@ -3,8 +3,8 @@ import email
 import os
 from pprint import pprint
 
-from meta import d_print, CORPUS_SPLIT
-import naive_bayesian, svm, decision_tree
+from meta import d_print, CORPUS_SPLIT, EXCLUSION_LIST_FOR_LIVE_DEMO
+import naive_bayesian, svm, decision_tree, k_nearest_neighbor
 
 """ GLOBAL VARIABLES """
 header_superset = set()
@@ -37,7 +37,7 @@ def main():
 
     classifiers = {'Naive Bayesian': nb,
                    'SVM': svm_clf,
-                   'Decision Tree':dt}
+                   'Decision Tree': dt}
 
     train(classifiers, training)
     classify(classifiers, testing, processed_unlabeled_test_set)
@@ -48,9 +48,13 @@ def train(classifiers, training_set):
     Calls training routines of the classifiers.
     """
     for cls_name in classifiers.keys():
-        d_print('Starting training', source=cls_name)
-        classifiers[cls_name].train(training_set)
-        d_print('Training complete', source=cls_name)
+        if cls_name in EXCLUSION_LIST_FOR_LIVE_DEMO:
+            d_print(cls_name, 'skipped for Live Demo', source='train')
+        else:
+            d_print('Starting training', source=cls_name)
+            classifiers[cls_name].train(training_set)
+            d_print('Training complete', source=cls_name)
+
 
 
 def classify(classifiers, testing_set, unlabeled_testing_set):
@@ -58,28 +62,31 @@ def classify(classifiers, testing_set, unlabeled_testing_set):
     Calls classify routines of the classifiers using classify_all (in meta.py), and reports accuracy.
     """
     for cls_name in classifiers.keys():
-        d_print('Starting classification', source=cls_name)
-        result = classifiers[cls_name].classify_all(testing_set)
-        assert len(result) == len(testing_set)
+        if cls_name in EXCLUSION_LIST_FOR_LIVE_DEMO:
+            d_print(cls_name, 'skipped for Live Demo', source='classify')
+        else:
+            d_print('Starting classification', source=cls_name)
+            result = classifiers[cls_name].classify_all(testing_set)
+            assert len(result) == len(testing_set)
 
-        correct_result_count = 0
-        for eml_filename in result.keys():
-            if str(result[eml_filename]) == str(testing_set[eml_filename]['label']):
-                correct_result_count += 1
-        print('\n', correct_result_count, 'out of', len(result), 'cases were correct.\n', cls_name,
-              'is {:6.4f} % accurate.'.format(correct_result_count / len(result) * 100))
+            correct_result_count = 0
+            for eml_filename in result.keys():
+                if str(result[eml_filename]) == str(testing_set[eml_filename]['label']):
+                    correct_result_count += 1
+            print('\n', correct_result_count, 'out of', len(result), 'cases were correct.\n', cls_name,
+                  'is {:6.4f} % accurate.'.format(correct_result_count / len(result) * 100))
 
-        result = classifiers[cls_name].classify_all(unlabeled_testing_set)
-        assert len(result) == len(unlabeled_testing_set)
+            result = classifiers[cls_name].classify_all(unlabeled_testing_set)
+            assert len(result) == len(unlabeled_testing_set)
 
-        spam_result_count = 0
-        for eml_filename in result.keys():
-            if str(result[eml_filename]) == str(0):
-                spam_result_count += 1
-        print('\n', spam_result_count, 'out of', len(result), 'unlabeled cases were reported as spam.\n', cls_name,
-              'claims {:6.4f} % of unlabeled test set is spam.\n'.format(spam_result_count / len(result) * 100))
+            spam_result_count = 0
+            for eml_filename in result.keys():
+                if str(result[eml_filename]) == str(0):
+                    spam_result_count += 1
+            print('\n', spam_result_count, 'out of', len(result), 'unlabeled cases were reported as spam.\n', cls_name,
+                  'claims {:6.4f} % of unlabeled test set is spam.\n'.format(spam_result_count / len(result) * 100))
 
-        d_print('Finished classification', source=cls_name)
+            d_print('Finished classification', source=cls_name)
 
 
 def extract_labels():
